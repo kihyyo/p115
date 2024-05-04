@@ -33,7 +33,7 @@ from os import fsdecode, fstat, makedirs, PathLike
 from os.path import abspath, dirname, isdir, join as joinpath
 from shutil import COPY_BUFSIZE # type: ignore
 from threading import Event
-from typing import cast, Any, NamedTuple, Never, Optional, Self
+from typing import cast, Any, NamedTuple, Optional, Self
 
 from requests import Response, Session
 
