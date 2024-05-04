@@ -27,7 +27,8 @@ from contextlib import asynccontextmanager
 from datetime import date, datetime
 from email.utils import formatdate
 from functools import cached_property, partial, update_wrapper
-from hashlib import md5, sha1, file_digest
+from hashlib import md5, sha1
+from util.hash import file_digest
 from hmac import digest as hmac_digest
 from inspect import isawaitable, iscoroutinefunction
 from io import (
