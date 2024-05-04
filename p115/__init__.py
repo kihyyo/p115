@@ -46,7 +46,7 @@ from stat import S_IFDIR, S_IFREG
 from threading import Condition, Thread
 from time import sleep, time
 from typing import (
-    cast, overload, Any, ClassVar, Final, Generic, IO, Literal, None, Optional, Self, 
+    cast, overload, Any, ClassVar, Final, Generic, IO, Literal, None, Optional,
     TypeAlias, TypeVar
 )
 from types import MappingProxyType
@@ -4203,10 +4203,10 @@ class P115PathBase(Generic[P115FSType], Mapping, PathLike[str]):
     def __init__(self, /, attr: AttrDict):
         super().__setattr__("__dict__", attr)
 
-    def __and__(self, path: str | PathLike[str], /) -> Self:
+    def __and__(self, path: str | PathLike[str], /) -> "P115PathBase":
         return type(self)({"fs": self.fs, "path": commonpath((self.path, self.fs.abspath(path)))})
 
-    def __call__(self, /) -> Self:
+    def __call__(self, /) -> "P115PathBase":
         attr = self.fs.attr(self)
         if self.__dict__ is not attr:
             self.__dict__.update(attr)
@@ -4269,7 +4269,7 @@ class P115PathBase(Generic[P115FSType], Mapping, PathLike[str]):
     def __str__(self, /) -> str:
         return self.path
 
-    def __truediv__(self, path: str | PathLike[str], /) -> Self:
+    def __truediv__(self, path: str | PathLike[str], /) -> "P115PathBase":
         return self.joinpath(path)
 
     @property
@@ -4394,12 +4394,12 @@ class P115PathBase(Generic[P115FSType], Mapping, PathLike[str]):
             **kwargs, 
         )
 
-    def join(self, *names: str) -> Self:
+    def join(self, *names: str) -> "P115PathBase":
         if not names:
             return self
         return type(self)({"fs": self.fs, "path": joinpath(self.path, joins(names))})
 
-    def joinpath(self, *paths: str | PathLike[str]) -> Self:
+    def joinpath(self, *paths: str | PathLike[str]) -> "P115PathBase":
         if not paths:
             return self
         path = self.path
@@ -4466,7 +4466,7 @@ class P115PathBase(Generic[P115FSType], Mapping, PathLike[str]):
         )
 
     @property
-    def parent(self, /) -> Self:
+    def parent(self, /) -> "P115PathBase":
         path = self.path
         if path == "/":
             return self
@@ -4568,7 +4568,7 @@ class P115PathBase(Generic[P115FSType], Mapping, PathLike[str]):
         )
 
     @cached_property
-    def root(self, /) -> Self:
+    def root(self, /) -> "P115PathBase":
         return type(self)({"fs": self.fs, "path": "/", "id": 0})
 
     def samefile(self, path: str | PathLike[str], /) -> bool:
@@ -4658,13 +4658,13 @@ class P115PathBase(Generic[P115FSType], Mapping, PathLike[str]):
             **kwargs, 
         )
 
-    def with_name(self, name: str, /) -> Self:
+    def with_name(self, name: str, /) -> "P115PathBase":
         return self.parent.joinpath(name)
 
-    def with_stem(self, stem: str, /) -> Self:
+    def with_stem(self, stem: str, /) -> "P115PathBase":
         return self.parent.joinpath(stem + self.suffix)
 
-    def with_suffix(self, suffix: str, /) -> Self:
+    def with_suffix(self, suffix: str, /) -> "P115PathBase":
         return self.parent.joinpath(self.stem + suffix)
 
 
@@ -4683,7 +4683,7 @@ class P115FileSystemBase(Generic[P115PathType]):
     def __iter__(self, /) -> Iterator[P115PathType]:
         return self.iter(max_depth=-1)
 
-    def __itruediv__(self, id_or_path: IDOrPathType, /) -> Self:
+    def __itruediv__(self, id_or_path: IDOrPathType, /) -> "P115FileSystemBase":
         self.chdir(id_or_path)
         return self
 
@@ -5688,7 +5688,7 @@ class P115Path(P115PathBase):
     def description(self, /, desc: str = ""):
         return self.fs.desc(self, desc=desc)
 
-    def mkdir(self, /, exist_ok: bool = True) -> Self:
+    def mkdir(self, /, exist_ok: bool = True) -> "P115Path":
         self.__dict__.update(self.fs.makedirs(self, exist_ok=exist_ok))
         return self
 
@@ -5697,7 +5697,7 @@ class P115Path(P115PathBase):
         /, 
         dst_path: IDOrPathType, 
         pid: Optional[int] = None, 
-    ) -> Self:
+    ) -> "P115Path":
         attr = self.fs.move(self, dst_path, pid)
         if attr is None:
             return self
@@ -5711,7 +5711,7 @@ class P115Path(P115PathBase):
         /, 
         dst_path: IDOrPathType, 
         pid: Optional[int] = None, 
-    ) -> Self:
+    ) -> "P115Path":
         attr = self.fs.rename(self, dst_path, pid)
         if attr is None:
             return self
@@ -5722,7 +5722,7 @@ class P115Path(P115PathBase):
         /, 
         dst_path: IDOrPathType, 
         pid: Optional[int] = None, 
-    ) -> Self:
+    ) -> "P115Path":
         attr = self.fs.renames(self, dst_path, pid)
         if attr is None:
             return self
@@ -5733,7 +5733,7 @@ class P115Path(P115PathBase):
         /, 
         dst_path: IDOrPathType, 
         pid: Optional[int] = None, 
-    ) -> Self:
+    ) -> "P115Path":
         attr = self.fs.replace(self, dst_path, pid)
         if attr is None:
             return self
@@ -5742,7 +5742,7 @@ class P115Path(P115PathBase):
     def rmdir(self, /) -> dict:
         return self.fs.rmdir(self)
 
-    def touch(self, /) -> Self:
+    def touch(self, /) -> "P115Path":
         self.__dict__.update(self.fs.touch(self))
         return self
 
@@ -5752,7 +5752,7 @@ class P115Path(P115PathBase):
         self, 
         /, 
         data: bytes | bytearray | memoryview | SupportsRead[bytes] = b"", 
-    ) -> Self:
+    ) -> "P115Path":
         self.__dict__.update(self.fs.write_bytes(self, data))
         return self
 
@@ -5763,7 +5763,7 @@ class P115Path(P115PathBase):
         encoding: Optional[str] = None, 
         errors: Optional[str] = None, 
         newline: Optional[str] = None, 
-    ) -> Self:
+    ) -> "P115Path":
         self.__dict__.update(self.fs.write_text(
             self, 
             text, 
@@ -5836,7 +5836,7 @@ class P115FileSystem(P115FileSystemBase[P115Path]):
         cookie = None, 
         app: str = "web", 
         **kwargs, 
-    ) -> Self:
+    ) -> "P115FileSystem":
         kwargs["client"] = P115Client(cookie, login_app=app)
         return cls(**kwargs)
 
@@ -7254,7 +7254,7 @@ class P115ShareFileSystem(P115FileSystemBase[P115SharePath]):
         share_link: str, 
         cookie = None, 
         app: str = "web", 
-    ) -> Self:
+    ) -> "P115ShareFileSystem":
         return cls(P115Client(cookie, login_app=app), share_link)
 
     def set_receive_code(self, code: str, /):
@@ -7682,7 +7682,7 @@ class P115ZipFileSystem(P115FileSystemBase[P115ZipPath]):
         id_or_pickcode: int | str, 
         cookie = None, 
         app: str = "web", 
-    ) -> Self:
+    ) -> "P115ZipFileSystem":
         return cls(P115Client(cookie, login_app=app), id_or_pickcode)
 
     @check_response
