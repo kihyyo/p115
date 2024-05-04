@@ -33,7 +33,7 @@ from os import fsdecode, fstat, makedirs, PathLike
 from os.path import abspath, dirname, isdir, join as joinpath
 from shutil import COPY_BUFSIZE # type: ignore
 from threading import Event
-from typing import cast, Any, NamedTuple, Optional, Self
+from typing import cast, Any, NamedTuple, Optional
 
 from requests import Response, Session
 
@@ -106,7 +106,7 @@ class DownloadTask:
         *args, 
         submit=run_as_thread, 
         **kwargs, 
-    ) -> Self:
+    ) -> "DownloadTask":
         return cls(download_iter(*args, **kwargs), submit=submit)
 
     @property
