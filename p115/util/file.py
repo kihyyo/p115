@@ -18,7 +18,7 @@ from io import (
 )
 from os import fstat, stat, PathLike
 from shutil import COPY_BUFSIZE # type: ignore
-from typing import Any, BinaryIO, IO, Optional, Protocol, TypeVar
+from typing import Any, BinaryIO, IO, Optional, Protocol, TypeVar, Union
 from types import MappingProxyType
 from warnings import warn
 
@@ -439,7 +439,7 @@ class HTTPFileReader(RawIOBase, BinaryIO):
         encoding: Optional[str] = None, 
         errors: Optional[str] = None, 
         newline: Optional[str] = None, 
-    ) -> "HTTPFileReader" | IO:
+    ) -> Union["HTTPFileReader", IO]:
         if buffering is None:
             if text_mode:
                 buffering = DEFAULT_BUFFER_SIZE
