@@ -4,7 +4,8 @@
 __author__ = "ChenyangGao <https://chenyanggao.github.io>"
 __all__ = ["thread_batch", "thread_pool_batch", "async_batch", "threaded", "run_as_thread"]
 
-from asyncio import CancelledError, Semaphore as AsyncSemaphore, TaskGroup
+import asyncio
+from asyncio import CancelledError, Semaphore as AsyncSemaphore
 from collections.abc import Callable, Coroutine, Iterable
 from concurrent.futures import Future, ThreadPoolExecutor
 from functools import partial, update_wrapper
@@ -107,12 +108,13 @@ async def async_batch(
     work: Callable[[T], Coroutine[None, None, V]] | Callable[[T, Callable], Coroutine[None, None, V]], 
     tasks: Iterable[T], 
     callback: Optional[Callable[[V], Any]] = None, 
-    sema: Optional[AsyncSemaphore] = None, 
+    sema: Optional[asyncio.Semaphore] = None, 
 ):
-    ac = argcount(work)
+    ac = len(work.__code__.co_varnames)
     if ac < 1:
-        raise TypeError(f"{work!r} should accept a positional argument as task")
+        raise TypeError(f"{work!r} should accept at least one positional argument as task")
     with_submit = ac > 1
+
     async def works(task):
         try:
             if sema is None:
@@ -133,13 +135,13 @@ async def async_batch(
         except KeyboardInterrupt:
             raise
         except BaseException as e:
-            raise CancelledError from e
+            raise asyncio.CancelledError from e
+
     def submit(task):
-        return create_task(works(task))
-    async with TaskGroup() as tg:
-        create_task = tg.create_task
-        for task in tasks:
-            submit(task)
+        return asyncio.create_task(works(task))
+
+    tasks = [submit(task) for task in tasks]
+    await asyncio.gather(*tasks)
 
 
 def threaded(
