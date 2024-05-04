@@ -140,7 +140,7 @@ class P115ECDHCipher:
         if isinstance(text, str):
             text = bytes(text, "utf-8")
         pad_size = 16 - (len(text) & 15)
-        text += int.to_bytes(pad_size) * pad_size
+        text += pad_size.to_bytes(1, 'big') * pad_size
         encrypt = AES.new(self.aes_key, AES.MODE_ECB).encrypt
         cipher_text = bytearray()
         xor_key = self.aes_iv
