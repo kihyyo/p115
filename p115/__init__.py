@@ -46,7 +46,7 @@ from stat import S_IFDIR, S_IFREG
 from threading import Condition, Thread
 from time import sleep, time
 from typing import (
-    cast, overload, Any, ClassVar, Final, Generic, IO, Literal, None, Optional,
+    cast, overload, Any, ClassVar, Final, Generic, IO, Literal, Optional,
     TypeAlias, TypeVar
 )
 from types import MappingProxyType
