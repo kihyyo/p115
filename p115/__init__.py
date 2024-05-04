@@ -46,7 +46,7 @@ from stat import S_IFDIR, S_IFREG
 from threading import Condition, Thread
 from time import sleep, time
 from typing import (
-    cast, overload, Any, ClassVar, Final, Generic, IO, Literal, Never, Optional, Self, 
+    cast, overload, Any, ClassVar, Final, Generic, IO, Literal, None, Optional, Self, 
     TypeAlias, TypeVar
 )
 from types import MappingProxyType
@@ -226,13 +226,13 @@ class UrlStr(str):
     def __init__(self, url="", /, *args, **kwds):
         self.__dict__.update(*args, **kwds)
 
-    def __delattr__(self, attr, /) -> Never:
+    def __delattr__(self, attr, /) -> None:
         raise TypeError("can't delete attributes")
 
     def __getitem__(self, key, /):
         return self.__dict__[key]
 
-    def __setattr__(self, attr, val, /) -> Never:
+    def __setattr__(self, attr, val, /) -> None:
         raise TypeError("can't set attributes")
 
     def __repr__(self, /) -> str:
@@ -4263,7 +4263,7 @@ class P115PathBase(Generic[P115FSType], Mapping, PathLike[str]):
             name = module + "." + name
         return f"{name}({self.__dict__})"
 
-    def __setattr__(self, attr, val, /) -> Never:
+    def __setattr__(self, attr, val, /) -> None:
         raise TypeError("can't set attributes")
 
     def __str__(self, /) -> str:
@@ -7244,7 +7244,7 @@ class P115ShareFileSystem(P115FileSystemBase[P115SharePath]):
             name = module + "." + name
         return f"<{name}(client={self.client!r}, share_link={self.share_link!r}, cid={self.cid!r}, path={self.path!r}) at {hex(id(self))}>"
 
-    def __setattr__(self, attr, val, /) -> Never:
+    def __setattr__(self, attr, val, /) -> None:
         raise TypeError("can't set attributes")
 
     @classmethod
@@ -7672,7 +7672,7 @@ class P115ZipFileSystem(P115FileSystemBase[P115ZipPath]):
         if file_id is None:
             self.__dict__["create_time"] = datetime.fromtimestamp(0)
 
-    def __setattr__(self, attr, val, /) -> Never:
+    def __setattr__(self, attr, val, /) -> None:
         raise TypeError("can't set attributes")
 
     @classmethod
