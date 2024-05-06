@@ -3235,6 +3235,44 @@ class P115Client:
             **request_kwargs, 
         )
 
+    def _upload_file_hash(
+        self, 
+        /, 
+        file, 
+        filename: Optional[str] = None, 
+        pid: int = 0, 
+        filesize: int = -1, 
+        file_sha1: Optional[str] = None, 
+        part_size: int = 0, 
+        upload_directly: bool = False, 
+        **request_kwargs, 
+    ) -> dict:
+        """文件上传接口，这是高层封装，推荐使用
+        """
+        if upload_directly:
+            return self.upload_file_sample(file, filename, pid, **request_kwargs)
+
+        if not file_sha1 and hasattr(file, "read"):
+            try:
+                file.seek(0, 1)
+            except Exception:
+                return self.upload_file_sample(file, filename, pid, **request_kwargs)
+
+        resp = self.upload_init_file(
+            file, 
+            filename, 
+            filesize=filesize, 
+            file_sha1=file_sha1, 
+            pid=pid, 
+            **request_kwargs, 
+        )
+        status = resp["status"]
+        statuscode = resp.get("statuscode", 0)
+        if status == 2 and statuscode == 0:
+            return resp
+        else:
+            return None
+            
     def _upload_file_sync(
         self, 
         /, 
