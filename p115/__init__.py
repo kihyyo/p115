@@ -255,7 +255,8 @@ class P115Client:
             resp = self.login_with_qrcode(login_app)
             cookie = resp["data"]["cookie"]
         self.cookie = cookie
-        resp = self.upload_info
+        resp = self.request_with_timeout("https://proapi.115.com/app/uploadinfo")
+        print(resp)
         if resp["errno"]:
             raise AuthenticationError(resp)
         ns.update(user_id=resp["user_id"], user_key=resp["userkey"])
@@ -407,6 +408,41 @@ class P115Client:
         """帮助函数：执行同步的网络请求
         """
         request_kwargs["stream"] = True
+        resp = self.session.request(method, url, **request_kwargs)
+        resp.raise_for_status()
+        if parse is None:
+            resp.close()
+        elif callable(parse):
+            ac = argcount(parse)
+            with resp:
+                if ac == 1:
+                    return parse(resp)
+                else:
+                    return parse(resp, resp.content)
+        elif parse:
+            with resp:
+                content_type = resp.headers.get("Content-Type", "")
+                if content_type == "application/json":
+                    return resp.json()
+                elif content_type.startswith("application/json;"):
+                    return loads(resp.text)
+                elif content_type.startswith("text/"):
+                    return resp.text
+                return resp.content
+        return resp
+
+
+    def _request_with_timeout(
+        self, 
+        /, 
+        url: str, 
+        method: str = "GET", 
+        parse: None | bool | Callable = False, 
+        **request_kwargs, 
+    ):
+        """帮助函数：执行同步的网络请求
+        """
+        request_kwargs["stream"] = True
         max_retries = 3
         retry_delay = 2
         attempts = 0
@@ -414,7 +450,8 @@ class P115Client:
         while attempts < max_retries:
             try:
                 resp = self.session.request(method, url,
-                    timeout=(5.0, 10.0), **request_kwargs)
+                    timeout=(5.0, 10.0),
+                    **request_kwargs                )
                 break
             except requests.exceptions.Timeout:
                 print(f"Timeout occurred, attempt {attempts + 1}/{max_retries}")
@@ -422,6 +459,7 @@ class P115Client:
                 if attempts < max_retries:
                     time.sleep(retry_delay) 
                 else:
+                    # 최대 재시도 횟수 도달 시 예외를 다시 발생시켜 호출자에게 알림
                     raise Exception("Max retries reached, failing request")
                 
         resp.raise_for_status()
@@ -457,22 +495,7 @@ class P115Client:
         """帮助函数：执行异步的网络请求
         """
         request_kwargs.pop("stream", None)
-        self._next_request_time = 0.0
-        while True:
-            # Flow control
-            
-            wait_time = self._next_request_time - time.time()
-            if wait_time > 0:
-                time.sleep(wait_time)
-            try:
-                resp = self.session.request(method, url,
-                    timeout=(10.0, 30.0),
-                    **request_kwargs                )
-                break
-            except requests.exceptions.Timeout:
-                print('Request timeout, retry ...')
-            finally:
-                self._next_request_time = time.time() + float(random.randint(100, 500) / 1000.0)
+        req = self.async_session.request(method, url, **request_kwargs)
         if parse is None:
             async def request():
                 async with req as resp:
@@ -502,7 +525,20 @@ class P115Client:
         else:
             return req
         return request()
-
+    
+    def request_with_timeout(
+        self, 
+        /, 
+        url: str, 
+        method: str = "GET", 
+        parse: None | bool | Callable = lambda resp, content: loads(content), 
+        async_: bool = False, 
+        **request_kwargs, 
+    ):
+        """帮助函数：可执行同步和异步的网络请求
+        """
+        return (self._async_request if async_ else self._request_with_timeout)(
+            url, method, parse=parse, **request_kwargs)
     def request(
         self, 
         /, 
@@ -921,7 +957,7 @@ class P115Client:
         api = "https://webapi.115.com/files/file"
         if isinstance(payload, (int, str)):
             payload = {"file_id": payload}
-        return self.request(api, "POST", data=payload, async_=async_, **request_kwargs)
+        return self.request_with_timeout(api, "POST", data=payload, async_=async_, **request_kwargs)
 
     def fs_files(
         self, 
@@ -975,7 +1011,7 @@ class P115Client:
         api = "https://webapi.115.com/files"
         payload = {"aid": 1, "asc": 1, "cid": 0, "count_folders": 1, "limit": 32, "o": "file_name", 
                    "offset": 0, "record_open_time": 1, "show_dir": 1, **payload}
-        return self.request(api, params=payload, async_=async_, **request_kwargs)
+        return self.request_with_timeout(api, params=payload, async_=async_, **request_kwargs)
 
     def fs_files2(
         self, 
@@ -1031,6 +1067,7 @@ class P115Client:
                    "offset": 0, "record_open_time": 1, "show_dir": 1, **payload}
         return self.request(api, params=payload, async_=async_, **request_kwargs)
 
+            
     def fs_files_edit(
         self, 
         payload: list | dict, 
@@ -3462,6 +3499,7 @@ class P115Client:
     ) -> dict:
         """文件上传接口，这是高层封装，推荐使用
         """
+
         if async_:
             method: Callable = self._upload_file_async
         else:
