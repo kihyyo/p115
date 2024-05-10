@@ -407,21 +407,23 @@ class P115Client:
         """帮助函数：执行同步的网络请求
         """
         request_kwargs["stream"] = True
-        self._next_request_time = 0.0
-        while True:
-            # Flow control
-            wait_time = self._next_request_time - time.time()
-            if wait_time > 0:
-                time.sleep(wait_time)
+        max_retries = 3
+        retry_delay = 2
+        attempts = 0
+
+        while attempts < max_retries:
             try:
                 resp = self.session.request(method, url,
-                    timeout=(10.0, 30.0),
-                    **request_kwargs                )
+                    timeout=(5.0, 10.0), **request_kwargs)
                 break
             except requests.exceptions.Timeout:
-                print('Request timeout, retry ...')
-            finally:
-                self._next_request_time = time.time() + float(random.randint(100, 500) / 1000.0)
+                print(f"Timeout occurred, attempt {attempts + 1}/{max_retries}")
+                attempts += 1
+                if attempts < max_retries:
+                    time.sleep(retry_delay) 
+                else:
+                    raise Exception("Max retries reached, failing request")
+                
         resp.raise_for_status()
         if parse is None:
             resp.close()
