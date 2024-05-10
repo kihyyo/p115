@@ -439,39 +439,47 @@ class P115Client:
         parse: None | bool | Callable = False, 
         **request_kwargs, 
     ):
-        """帮助函数：执行异步的网络请求
+        """帮助函数：执行同步的网络请求
         """
-        request_kwargs.pop("stream", None)
-        req = self.async_session.request(method, url, **request_kwargs)
+        request_kwargs["stream"] = True
+        max_retries = 3
+        retry_delay = 2
+        attempts = 0
+
+        while attempts < max_retries:
+            try:
+                resp = self.session.request(method, url,
+                    timeout=(5.0, 10.0),
+                    **request_kwargs                )
+                break
+            except :
+                print(f"Timeout occurred, attempt {attempts + 1}/{max_retries}")
+                attempts += 1
+                if attempts < max_retries:
+                    time.sleep(retry_delay) 
+                else:
+                    raise Exception("Max retries reached, failing request")
+        resp.raise_for_status()
         if parse is None:
-            async def request():
-                async with req as resp:
-                    return resp
+            resp.close()
         elif callable(parse):
             ac = argcount(parse)
-            async def request():
-                async with req as resp:
-                    if ac == 1:
-                        ret = parse(resp)
-                    else:
-                        ret = parse(resp, (await resp.read()))
-                    if isawaitable(ret):
-                        ret = await ret
-                    return ret
+            with resp:
+                if ac == 1:
+                    return parse(resp)
+                else:
+                    return parse(resp, resp.content)
         elif parse:
-            async def request():
-                async with req as resp:
-                    content_type = resp.headers.get("Content-Type", "")
-                    if content_type == "application/json":
-                        return await resp.json()
-                    elif content_type.startswith("application/json;"):
-                        return loads(await resp.text())
-                    elif content_type.startswith("text/"):
-                        return await resp.text()
-                    return await resp.read()
-        else:
-            return req
-        return request()
+            with resp:
+                content_type = resp.headers.get("Content-Type", "")
+                if content_type == "application/json":
+                    return resp.json()
+                elif content_type.startswith("application/json;"):
+                    return loads(resp.text)
+                elif content_type.startswith("text/"):
+                    return resp.text
+                return resp.content
+        return resp
 
     def _async_request(
         self, 
