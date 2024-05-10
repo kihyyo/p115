@@ -1064,7 +1064,7 @@ class P115Client:
         api = "https://aps.115.com/natsort/files.php"
         payload = {"aid": 1, "asc": 1, "cid": 0, "count_folders": 1, "limit": 32, "o": "file_name", 
                    "offset": 0, "record_open_time": 1, "show_dir": 1, **payload}
-        return self.request(api, params=payload, async_=async_, **request_kwargs)
+        return self.request_with_timeout(api, params=payload, async_=async_, **request_kwargs)
 
             
     def fs_files_edit(
