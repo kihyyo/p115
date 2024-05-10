@@ -256,7 +256,6 @@ class P115Client:
             cookie = resp["data"]["cookie"]
         self.cookie = cookie
         resp = self.request_with_timeout("https://proapi.115.com/app/uploadinfo")
-        print(resp)
         if resp["errno"]:
             raise AuthenticationError(resp)
         ns.update(user_id=resp["user_id"], user_key=resp["userkey"])
