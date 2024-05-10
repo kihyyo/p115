@@ -514,63 +514,7 @@ class P115Client:
         else:
             return req
         return request()
-
-    def _async_request_with_timeout(
-        self, 
-        /, 
-        url: str, 
-        method: str = "GET", 
-        parse: None | bool | Callable = False, 
-        **request_kwargs, 
-    ):
-        """帮助函数：执行异步的网络请求
-        """
-        request_kwargs.pop("stream", None)
-        max_retries = 3
-        retry_delay = 2
-        attempts = 0
-
-        while attempts < max_retries:
-            try:
-              req = self.async_session.request(method, url, timeout=(5.0, 10.0), **request_kwargs)
-              break
-            except:
-              print(f"Timeout occurred, attempt {attempts + 1}/{max_retries}")
-              attempts += 1
-              if attempts < max_retries:
-                  time.sleep(retry_delay) 
-              else:
-                  raise Exception("Max retries reached, failing request")
-        if parse is None:
-            async def request():
-                async with req as resp:
-                    return resp
-        elif callable(parse):
-            ac = argcount(parse)
-            async def request():
-                async with req as resp:
-                    if ac == 1:
-                        ret = parse(resp)
-                    else:
-                        ret = parse(resp, (await resp.read()))
-                    if isawaitable(ret):
-                        ret = await ret
-                    return ret
-        elif parse:
-            async def request():
-                async with req as resp:
-                    content_type = resp.headers.get("Content-Type", "")
-                    if content_type == "application/json":
-                        return await resp.json()
-                    elif content_type.startswith("application/json;"):
-                        return loads(await resp.text())
-                    elif content_type.startswith("text/"):
-                        return await resp.text()
-                    return await resp.read()
-        else:
-            return req
-        return request()
-    
+   
     def request_with_timeout(
         self, 
         /, 
@@ -582,7 +526,7 @@ class P115Client:
     ):
         """帮助函数：可执行同步和异步的网络请求
         """
-        return (self._async_request_with_timeout if async_ else self._request_with_timeout)(
+        return (self._async_request if async_ else self._request_with_timeout)(
             url, method, parse=parse, **request_kwargs)
     def request(
         self, 
