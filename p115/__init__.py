@@ -80,7 +80,7 @@ from .util.property import funcproperty
 from .util.response import get_content_length, get_filename, is_range_request
 from .util.text import cookies_str_to_dict, posix_glob_translate_iter, to_base64
 from .util.urlopen import urlopen
-
+import random, requests, time
 
 filterwarnings("ignore", category=DeprecationWarning)
 
@@ -441,7 +441,22 @@ class P115Client:
         """帮助函数：执行异步的网络请求
         """
         request_kwargs.pop("stream", None)
-        req = self.async_session.request(method, url, **request_kwargs)
+        self._next_request_time = 0.0
+        while True:
+            # Flow control
+            
+            wait_time = self._next_request_time - time.time()
+            if wait_time > 0:
+                time.sleep(wait_time)
+            try:
+                resp = self.session.request(method, url,
+                    timeout=(10.0, 30.0),
+                    **request_kwargs                )
+                break
+            except requests.exceptions.Timeout:
+                print('Request timeout, retry ...')
+            finally:
+                self._next_request_time = time.time() + float(random.randint(100, 500) / 1000.0)
         if parse is None:
             async def request():
                 async with req as resp:
