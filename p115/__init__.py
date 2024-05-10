@@ -458,7 +458,6 @@ class P115Client:
                 if attempts < max_retries:
                     time.sleep(retry_delay) 
                 else:
-                    # 최대 재시도 횟수 도달 시 예외를 다시 발생시켜 호출자에게 알림
                     raise Exception("Max retries reached, failing request")
                 
         resp.raise_for_status()
