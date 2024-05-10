@@ -80,7 +80,7 @@ from .util.property import funcproperty
 from .util.response import get_content_length, get_filename, is_range_request
 from .util.text import cookies_str_to_dict, posix_glob_translate_iter, to_base64
 from .util.urlopen import urlopen
-import random, requests, time
+import random, requests
 
 filterwarnings("ignore", category=DeprecationWarning)
 
