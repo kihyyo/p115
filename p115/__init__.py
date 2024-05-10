@@ -407,7 +407,21 @@ class P115Client:
         """帮助函数：执行同步的网络请求
         """
         request_kwargs["stream"] = True
-        resp = self.session.request(method, url, **request_kwargs)
+        self._next_request_time = 0.0
+        while True:
+            # Flow control
+            wait_time = self._next_request_time - time.time()
+            if wait_time > 0:
+                time.sleep(wait_time)
+            try:
+                resp = self.session.request(method, url,
+                    timeout=(10.0, 30.0),
+                    **request_kwargs                )
+                break
+            except requests.exceptions.Timeout:
+                print('Request timeout, retry ...')
+            finally:
+                self._next_request_time = time.time() + float(random.randint(100, 500) / 1000.0)
         resp.raise_for_status()
         if parse is None:
             resp.close()
