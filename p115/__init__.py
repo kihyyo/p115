@@ -80,7 +80,7 @@ from .util.property import funcproperty
 from .util.response import get_content_length, get_filename, is_range_request
 from .util.text import cookies_str_to_dict, posix_glob_translate_iter, to_base64
 from .util.urlopen import urlopen
-import random, requests
+import random
 
 filterwarnings("ignore", category=DeprecationWarning)
 
@@ -456,7 +456,7 @@ class P115Client:
                 print(f"Timeout occurred, attempt {attempts + 1}/{max_retries}")
                 attempts += 1
                 if attempts < max_retries:
-                    sleep(retry_delay) 
+                    sleep(random.randint(5, 15)) 
                 else:
                     raise Exception("Max retries reached, failing request")
         resp.raise_for_status()
