@@ -443,7 +443,7 @@ class P115Client:
         """
         request_kwargs["stream"] = True
         max_retries = 3
-        retry_delay = 2
+        retry_delay = 5
         attempts = 0
 
         while attempts < max_retries:
