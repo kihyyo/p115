@@ -44,7 +44,7 @@ from re import compile as re_compile, escape as re_escape
 from shutil import copyfileobj, SameFileError
 from stat import S_IFDIR, S_IFREG
 from threading import Condition, Thread
-from import sleep, time
+from time import sleep, time
 from typing import (
     cast, overload, Any, ClassVar, Final, Generic, IO, Literal, Optional,
     TypeAlias, TypeVar
