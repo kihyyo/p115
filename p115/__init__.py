@@ -44,7 +44,7 @@ from re import compile as re_compile, escape as re_escape
 from shutil import copyfileobj, SameFileError
 from stat import S_IFDIR, S_IFREG
 from threading import Condition, Thread
-import sleep, time
+from import sleep, time
 from typing import (
     cast, overload, Any, ClassVar, Final, Generic, IO, Literal, Optional,
     TypeAlias, TypeVar
@@ -456,7 +456,7 @@ class P115Client:
                 print(f"Timeout occurred, attempt {attempts + 1}/{max_retries}")
                 attempts += 1
                 if attempts < max_retries:
-                    time.sleep(retry_delay) 
+                    sleep(retry_delay) 
                 else:
                     raise Exception("Max retries reached, failing request")
         resp.raise_for_status()
