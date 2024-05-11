@@ -44,7 +44,7 @@ from re import compile as re_compile, escape as re_escape
 from shutil import copyfileobj, SameFileError
 from stat import S_IFDIR, S_IFREG
 from threading import Condition, Thread
-from time import sleep, time
+import sleep, time
 from typing import (
     cast, overload, Any, ClassVar, Final, Generic, IO, Literal, Optional,
     TypeAlias, TypeVar
@@ -452,7 +452,7 @@ class P115Client:
                     timeout=(5.0, 10.0),
                     **request_kwargs                )
                 break
-            except :
+            except Timeout:
                 print(f"Timeout occurred, attempt {attempts + 1}/{max_retries}")
                 attempts += 1
                 if attempts < max_retries:
@@ -4307,10 +4307,10 @@ class P115PathBase(Generic[P115FSType], Mapping, PathLike[str]):
     def __init__(self, /, attr: AttrDict):
         super().__setattr__("__dict__", attr)
 
-    def __and__(self, path: str | PathLike[str], /) -> "P115PathBase":
+    def __and__(self, path: str | PathLike[str], /) -> P115PathBase:
         return type(self)({"fs": self.fs, "path": commonpath((self.path, self.fs.abspath(path)))})
 
-    def __call__(self, /) -> "P115PathBase":
+    def __call__(self, /) -> P115PathBase:
         attr = self.fs.attr(self)
         if self.__dict__ is not attr:
             self.__dict__.update(attr)
