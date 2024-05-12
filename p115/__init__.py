@@ -442,8 +442,7 @@ class P115Client:
         """帮助函数：执行同步的网络请求
         """
         request_kwargs["stream"] = True
-        max_retries = 3
-        retry_delay = 5
+        max_retries = 5
         attempts = 0
 
         while attempts < max_retries:
